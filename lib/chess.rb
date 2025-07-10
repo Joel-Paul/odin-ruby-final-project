@@ -3,8 +3,65 @@ require_relative 'chess/pieces'
 class Chess
   def initialize
     @board = Array.new(8) { Array.new(8) }
-
     setup_board
+  end
+
+  def new_game
+    setup_board
+    play :white
+  end
+
+  def play(turn)
+  end
+
+  def player_input(turn)
+    loop do
+      input = gets.chomp.downcase
+      continue if show_moves(input)
+      move = verify_move(turn, input)
+      return move if move
+
+      puts 'Invalid move!'
+    end
+  end
+
+  def translate_coords(file, rank)
+    row = 8 - rank
+    col = file.ord - 'a'.ord
+    [row, col]
+  end
+
+  def show_moves(input)
+    return unless input.match?(/^[a-h][1-8]$/)
+    pos = translate_coords(input[0], input[1])
+    piece = @board[pos[0]][pos[1]]
+    return unless piece
+    moves = piece.get_moves(@board, pos)
+    display_board moves
+    moves
+  end
+
+  def verify_move(turn, input)
+    return unless input.match?(/^[a-h][1-8] [a-h][1-8]$/)
+
+    # Convert from file_rank to [row, column]
+    from = translate_coords(input[0], input[1])
+    to = translate_coords(input[3], input[4])
+    
+    return unless from[0].between?(0, 7) and from[1].between?(0, 7)
+    return unless to[0].between?(0, 7) and to[1].between?(0, 7)
+    
+    # Check if the piece is valid and the right color
+    piece = @board[from[0]][from[1]]
+    return unless piece and piece.color == turn
+
+    # Check the target is empty or an opponent piece
+    target = @board[to[0]][to[1]]
+    return if target and target.color == turn
+
+    return unless piece.valid_move?(@board, from, to)
+
+    [from, to]
   end
 
   def setup_board
@@ -35,15 +92,31 @@ class Chess
     @board[7][4] = King.new :white
   end
 
-  def display_board
+  def display_board(moves = [])
     files = '  a b c d e f g h'
     display = files
     @board.each_with_index do |row, i|
       rank = 8 - i
       pieces = (row.map { |piece| piece&.icon || '.' }).join(' ')
-      display += "\n#{rank} #{pieces} #{rank}"
+      pieces = highlight_moves(moves, " #{pieces} ", i)
+      display += "\n#{rank}#{pieces}#{rank}"
     end
     display += "\n#{files}"
     puts display
+  end
+
+  def highlight_moves(moves, pieces, i)
+    8.times do |j|
+      pos = [i, j]
+      left = [pos[0], pos[1] - 1]
+      right = [pos[0], pos[1] + 1]
+      if moves.include?(pos)
+        l_sym = moves.include?(left) ? '|' : '['
+        r_sym = moves.include?(right) ? '|' : ']'
+        pieces[j * 2] = l_sym
+        pieces[j * 2 + 2] = r_sym
+      end
+    end
+    pieces
   end
 end
