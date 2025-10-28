@@ -7,12 +7,28 @@ class Chess
 
   def new_game
     setup_board
-    play :white
+    play
   end
 
-  def play(turn)
-    display_board
-    move = player_input(turn)
+  def play(turn=:white)
+    loop do
+      puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
+      display_board
+
+      from, to = player_input(turn)
+
+      target = @board[to[0]][to[1]]
+      if target
+        puts "#{turn.capitalize} captures #{target.class}!"
+      end
+
+      piece = @board[from[0]][from[1]]
+      @board[to[0]][to[1]] = piece
+      @board[from[0]][from[1]] = nil
+      piece.moved = true
+
+      turn = turn == :white ? :black : :white
+    end
   end
 
   def player_input(turn)

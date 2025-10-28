@@ -1,6 +1,7 @@
 
 class Piece
   attr_reader :color
+  attr_accessor :moved
 
   def initialize(color)
     @color = color
@@ -14,6 +15,11 @@ class Piece
   
   def get_moves(board, position)
     raise NotImplementedError, 'This method must be overriden in a subclass'
+  end
+
+  def valid_move?(board, from, to)
+    moves = get_moves(board, from)
+    moves.include?(to)
   end
 
   def get_piece(board, position)
