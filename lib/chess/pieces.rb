@@ -4,7 +4,7 @@ class Piece
 
   def initialize(color)
     @color = color
-    @forward = color == :white ? 1 : -1
+    @forward = color == :white ? -1 : 1
     @moved = false
   end
 

@@ -3,7 +3,6 @@ require_relative 'chess/pieces'
 class Chess
   def initialize
     @board = Array.new(8) { Array.new(8) }
-    setup_board
   end
 
   def new_game
@@ -12,12 +11,14 @@ class Chess
   end
 
   def play(turn)
+    display_board
+    move = player_input(turn)
   end
 
   def player_input(turn)
     loop do
       input = gets.chomp.downcase
-      continue if show_moves(input)
+      next if show_moves(input)
       move = verify_move(turn, input)
       return move if move
 
@@ -26,7 +27,7 @@ class Chess
   end
 
   def translate_coords(file, rank)
-    row = 8 - rank
+    row = 8 - rank.to_i
     col = file.ord - 'a'.ord
     [row, col]
   end
