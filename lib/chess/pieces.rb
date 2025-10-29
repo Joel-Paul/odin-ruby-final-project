@@ -181,6 +181,31 @@ class Knight < Piece
   def icon
     @color == :white ? '♘' : '♞'
   end
+
+  def get_moves(board, position)
+    moves = []
+
+    move_1 = [1, 2]
+    move_2 = [2, 1]
+
+    for move in [move_1, move_2]
+      for y in [-1, 1]
+        for x in [-1, 1]
+
+          target = [position[0] + move[0] * y, position[1] + move[1] * x]
+          next unless inside_bounds?(target)
+          
+          piece = get_piece(board, target)
+          if piece.nil? or piece.color != @color
+            moves.append target
+          end
+
+        end
+      end
+    end
+
+    moves
+  end
 end
 
 
