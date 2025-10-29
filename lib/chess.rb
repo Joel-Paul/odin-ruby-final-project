@@ -11,21 +11,21 @@ class Chess
   end
 
   def play(turn=:white)
+    last_move = []
     loop do
       puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
-      display_board
+      reset_en_passant turn
+      display_board last_move
 
-      from, to = player_input(turn)
+      last_move = player_input(turn)
+      from, to = last_move
 
-      target = @board[to[0]][to[1]]
+      piece = @board[from[0]][from[1]]
+      target = piece.move(@board, from, to)
+
       if target
         puts "#{turn.capitalize} captures #{target.class}!"
       end
-
-      piece = @board[from[0]][from[1]]
-      @board[to[0]][to[1]] = piece
-      @board[from[0]][from[1]] = nil
-      piece.moved = true
 
       turn = turn == :white ? :black : :white
     end
@@ -135,5 +135,15 @@ class Chess
       end
     end
     pieces
+  end
+
+  def reset_en_passant(turn)
+    @board.each do |row|
+      row.each do |piece|
+        if piece.is_a?(Pawn) and piece.color == turn
+          piece.en_passant = false
+        end
+      end
+    end
   end
 end

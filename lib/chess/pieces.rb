@@ -1,7 +1,6 @@
 
 class Piece
   attr_reader :color
-  attr_accessor :moved
 
   def initialize(color)
     @color = color
@@ -22,6 +21,14 @@ class Piece
     moves.include?(to)
   end
 
+  def move(board, from, to)
+    target = board[to[0]][to[1]]
+    board[from[0]][from[1]] = nil
+    board[to[0]][to[1]] = self
+    @moved = true
+    target
+  end
+
   def get_piece(board, position)
     row = board[position[0]]
     return if not row
@@ -31,6 +38,8 @@ class Piece
 end
 
 class Pawn < Piece
+  attr_accessor :en_passant
+
   def initialize(color)
     super(color)
     @en_passant = false
@@ -63,13 +72,35 @@ class Pawn < Piece
     left = [position[0], position[1] - 1]
     right = [position[0], position[1] + 1]
     for side in [left, right]
-      if side.is_a?(Pawn) and side.en_passant
+      piece = get_piece(board, side)
+      if piece.is_a?(Pawn) and piece.en_passant
         target = [side[0] + @forward, side[1]]
         moves.append(target) unless get_piece(board, target)
       end
     end
 
     moves
+  end
+
+  def move(board, from, to)
+    target = super
+
+    # Set En Passant
+    if to[0] - from[0] == 2 * @forward
+      @en_passant = true
+    end
+
+    # Check En Passant Capture
+    if to[1] - from[1] != 0
+      pos = [from[0], to[1]]
+      piece = get_piece(board, pos)
+      if piece.is_a?(Pawn) and piece.en_passant
+        target = board[pos[0]][pos[1]]
+        board[pos[0]][pos[1]] = nil
+      end
+    end
+
+    target
   end
 end
 
