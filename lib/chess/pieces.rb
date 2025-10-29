@@ -43,6 +43,34 @@ class Piece
     end
     moves
   end
+  
+  def diagonal_moves(board, position, range=7)
+    moves = []
+
+    up_left = [-1, -1]
+    up_right = [-1, 1]
+    down_left = [1, -1]
+    down_right = [1, 1]
+    for dir in [up_left, up_right, down_left, down_right]
+
+      for i in 1..range
+        target = [position[0] + dir[0] * i, position[1] + dir[1] * i]
+        break unless inside_bounds?(target)
+
+        piece = get_piece(board, target)
+        if piece.nil?
+          moves.append target
+        elsif piece.color != @color
+          moves.append target
+          break
+        else
+          break
+        end
+      end
+
+    end
+    moves
+  end
 
   def valid_move?(board, from, to)
     moves = get_moves(board, from)
@@ -68,6 +96,7 @@ class Piece
     position[0].between?(0, 7) and position[1].between?(0, 7)
   end
 end
+
 
 class Pawn < Piece
   attr_accessor :en_passant
@@ -136,6 +165,7 @@ class Pawn < Piece
   end
 end
 
+
 class Rook < Piece
   def icon
     @color == :white ? '♖' : '♜'
@@ -146,26 +176,41 @@ class Rook < Piece
   end
 end
 
+
 class Knight < Piece
   def icon
     @color == :white ? '♘' : '♞'
   end
 end
 
+
 class Bishop < Piece
   def icon
     @color == :white ? '♗' : '♝'
   end
+
+  def get_moves(board, position)
+    diagonal_moves(board, position)
+  end
 end
+
 
 class Queen < Piece
   def icon
     @color == :white ? '♕' : '♛'
+  end
+
+  def get_moves(board, position)
+    orthogonal_moves(board, position) + diagonal_moves(board, position)
   end
 end
 
 class King < Piece
   def icon
     @color == :white ? '♔' : '♚'
+  end
+
+  def get_moves(board, position)
+    orthogonal_moves(board, position, range=1) + diagonal_moves(board, position, range=1)
   end
 end
