@@ -16,6 +16,34 @@ class Piece
     raise NotImplementedError, 'This method must be overriden in a subclass'
   end
 
+  def orthogonal_moves(board, position, range=7)
+    moves = []
+
+    up = [-1, 0]
+    down = [1, 0]
+    left = [0, -1]
+    right = [0, 1]
+    for dir in [up, down, left, right]
+
+      for i in 1..range
+        target = [position[0] + dir[0] * i, position[1] + dir[1] * i]
+        break unless inside_bounds?(target)
+
+        piece = get_piece(board, target)
+        if piece.nil?
+          moves.append target
+        elsif piece.color != @color
+          moves.append target
+          break
+        else
+          break
+        end
+      end
+
+    end
+    moves
+  end
+
   def valid_move?(board, from, to)
     moves = get_moves(board, from)
     moves.include?(to)
@@ -34,6 +62,10 @@ class Piece
     return if not row
     piece = row[position[1]]
     return piece if piece
+  end
+
+  def inside_bounds?(position)
+    position[0].between?(0, 7) and position[1].between?(0, 7)
   end
 end
 
@@ -107,6 +139,10 @@ end
 class Rook < Piece
   def icon
     @color == :white ? '♖' : '♜'
+  end
+
+  def get_moves(board, position)
+    orthogonal_moves(board, position)
   end
 end
 
