@@ -97,7 +97,7 @@ class Piece
       piece = get_piece(board, move)
       return move if piece.is_a?(King) and piece.color != @color
     end
-    false
+    nil
   end
 
   def inside_bounds?(position)

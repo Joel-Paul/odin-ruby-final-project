@@ -28,6 +28,9 @@ class Chess
         puts "#{turn.capitalize} captures #{target.class}!"
       end
 
+      checked = get_checked_player
+      puts "#{checked.capitalize} in check!" unless checked == :none
+
       turn = turn == :white ? :black : :white
     end
   end
@@ -158,6 +161,21 @@ class Chess
         end
       end
     end
+  end
+
+  def get_checked_player
+    @board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        position = [i, j]
+        if piece
+          king_pos = piece.get_checking(@board, position)
+          next if king_pos.nil?
+          king = @board[king_pos[0]][king_pos[1]]
+          return king.color
+        end
+      end
+    end
+    :none
   end
 
   def get_checking
