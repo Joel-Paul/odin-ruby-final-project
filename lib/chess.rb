@@ -15,9 +15,10 @@ class Chess
     loop do
       puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
       reset_en_passant turn
-      display_board last_move
+      checking = get_checking
+      display_board(moves=[], prev_move=last_move, checking=checking)
 
-      last_move = player_input(turn)
+      last_move = player_input(turn, last_move, checking)
       from, to = last_move
 
       piece = @board[from[0]][from[1]]
@@ -31,10 +32,10 @@ class Chess
     end
   end
 
-  def player_input(turn)
+  def player_input(turn, prev_move, checking)
     loop do
       input = gets.chomp.downcase
-      next if show_moves(input)
+      next if show_moves(input, prev_move, checking)
       move = verify_move(turn, input)
       return move if move
 
@@ -48,13 +49,13 @@ class Chess
     [row, col]
   end
 
-  def show_moves(input)
+  def show_moves(input, prev_move, checking)
     return unless input.match?(/^[a-h][1-8]$/)
     pos = translate_coords(input[0], input[1])
     piece = @board[pos[0]][pos[1]]
     return unless piece
     moves = piece.get_moves(@board, pos)
-    display_board moves
+    display_board(moves=moves, prev_move, checking)
     moves
   end
 
@@ -109,20 +110,20 @@ class Chess
     @board[7][4] = King.new :white
   end
 
-  def display_board(moves = [])
+  def display_board(moves = [], prev_move = [], checking = [])
     files = '  a b c d e f g h'
     display = files
     @board.each_with_index do |row, i|
       rank = 8 - i
       pieces = (row.map { |piece| piece&.icon || '.' }).join(' ')
-      pieces = highlight_moves(moves, " #{pieces} ", i)
+      pieces = highlight_moves(moves, prev_move, checking, " #{pieces} ", i)
       display += "\n#{rank}#{pieces}#{rank}"
     end
     display += "\n#{files}"
     puts display
   end
 
-  def highlight_moves(moves, pieces, i)
+  def highlight_moves(moves, prev_move, checking, pieces, i)
     8.times do |j|
       pos = [i, j]
       left = [pos[0], pos[1] - 1]
@@ -130,6 +131,16 @@ class Chess
       if moves.include?(pos)
         l_sym = moves.include?(left) ? '|' : '['
         r_sym = moves.include?(right) ? '|' : ']'
+        pieces[j * 2] = l_sym
+        pieces[j * 2 + 2] = r_sym
+      elsif checking.include?(pos)
+        l_sym = checking.include?(left) ? '|' : '{'
+        r_sym = checking.include?(right) ? '|' : '}'
+        pieces[j * 2] = l_sym
+        pieces[j * 2 + 2] = r_sym
+      elsif prev_move.include?(pos)
+        l_sym = prev_move.include?(left) ? '|' : '('
+        r_sym = prev_move.include?(right) ? '|' : ')'
         pieces[j * 2] = l_sym
         pieces[j * 2 + 2] = r_sym
       end
@@ -145,5 +156,19 @@ class Chess
         end
       end
     end
+  end
+
+  def get_checking
+    checking = []
+    @board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        position = [i, j]
+        if piece
+          king = piece.get_checking(@board, position)
+          checking.append(position, king) if king
+        end
+      end
+    end
+    checking
   end
 end

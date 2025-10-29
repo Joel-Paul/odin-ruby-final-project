@@ -92,6 +92,14 @@ class Piece
     return piece if piece
   end
 
+  def get_checking(board, position)
+    for move in get_moves(board, position)
+      piece = get_piece(board, move)
+      return move if piece.is_a?(King) and piece.color != @color
+    end
+    false
+  end
+
   def inside_bounds?(position)
     position[0].between?(0, 7) and position[1].between?(0, 7)
   end
