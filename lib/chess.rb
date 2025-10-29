@@ -128,19 +128,21 @@ class Chess
       pos = [i, j]
       left = [pos[0], pos[1] - 1]
       right = [pos[0], pos[1] + 1]
+      l_inc = moves.include?(left) or checking.include?(left) or prev_move.include?(left)
+      r_inc = moves.include?(right) or checking.include?(right) or prev_move.include?(right)
+      l_sym = nil
+      r_sym = nil
       if moves.include?(pos)
-        l_sym = moves.include?(left) ? '|' : '['
-        r_sym = moves.include?(right) ? '|' : ']'
-        pieces[j * 2] = l_sym
-        pieces[j * 2 + 2] = r_sym
+        l_sym = l_inc ? '|' : '['
+        r_sym = r_inc ? '|' : ']'
       elsif checking.include?(pos)
-        l_sym = checking.include?(left) ? '|' : '{'
-        r_sym = checking.include?(right) ? '|' : '}'
-        pieces[j * 2] = l_sym
-        pieces[j * 2 + 2] = r_sym
+        l_sym = l_inc ? '|' : '{'
+        r_sym = r_inc ? '|' : '}'
       elsif prev_move.include?(pos)
-        l_sym = prev_move.include?(left) ? '|' : '('
-        r_sym = prev_move.include?(right) ? '|' : ')'
+        l_sym = l_inc ? '|' : '('
+        r_sym = r_inc ? '|' : ')'
+      end
+      if l_sym and r_sym
         pieces[j * 2] = l_sym
         pieces[j * 2 + 2] = r_sym
       end
