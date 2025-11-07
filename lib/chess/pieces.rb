@@ -82,7 +82,7 @@ class Piece
     board[from[0]][from[1]] = nil
     board[to[0]][to[1]] = self
     @moved = true
-    target
+    [target, to]
   end
 
   def get_piece(board, position)
@@ -152,7 +152,7 @@ class Pawn < Piece
   end
 
   def move(board, from, to)
-    target = super
+    target, t_pos = super
 
     # Set En Passant
     if to[0] - from[0] == 2 * @forward
@@ -165,11 +165,12 @@ class Pawn < Piece
       piece = get_piece(board, pos)
       if piece.is_a?(Pawn) and piece.en_passant
         target = board[pos[0]][pos[1]]
+        t_pos = pos
         board[pos[0]][pos[1]] = nil
       end
     end
 
-    target
+    [target, t_pos]
   end
 end
 

@@ -3,6 +3,10 @@ require_relative 'chess/pieces'
 class Chess
   def initialize
     @board = Array.new(8) { Array.new(8) }
+    @turn = :white
+    @prev_move = []
+    @checking = []
+    @checked_player = :none
   end
 
   def new_game
@@ -10,36 +14,58 @@ class Chess
     play
   end
 
-  def play(turn=:white)
-    last_move = []
+  def play_turn
+    reset_en_passant
+
+    prev_copy = @prev_move
+    @prev_move = player_input
+    return :exit if @prev_move.nil?  # exit game
+    from, to = @prev_move
+
+    piece = @board[from[0]][from[1]]
+    target, pos = piece.move(@board, from, to)
+
+    @checked_player = get_checked_player
+    if @checked_player == @turn
+      # Undo move if it results in current player landing in check
+      @board[from[0]][from[1]] = piece
+      @board[to[0]][to[0]] = nil
+      @board[pos[0]][pos[1]] = target
+      @prev_move = prev_copy
+      return :undo
+    end
+    @turn = @turn == :white ? :black : :white
+    target
+  end
+
+  def play
     loop do
+      turn = @turn
       puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
-      reset_en_passant turn
-      checking = get_checking
-      display_board(moves=[], prev_move=last_move, checking=checking)
+      display_board
 
-      last_move = player_input(turn, last_move, checking)
-      from, to = last_move
-
-      piece = @board[from[0]][from[1]]
-      target = piece.move(@board, from, to)
-
-      if target
-        puts "#{turn.capitalize} captures #{target.class}!"
+      target = nil
+      loop do
+        target = play_turn
+        return if target == :exit
+        if target == :undo
+          puts "This move will put you in check, try again..."
+        else
+          break
+        end
       end
 
-      checked = get_checked_player
-      puts "#{checked.capitalize} in check!" unless checked == :none
-
-      turn = turn == :white ? :black : :white
+      puts "#{turn.capitalize} captures #{target.class}!" if target
+      puts "#{@checked_player.capitalize} in check!" unless @checked_player == :none
     end
   end
 
-  def player_input(turn, prev_move, checking)
+  def player_input
     loop do
       input = gets.chomp.downcase
-      next if show_moves(input, prev_move, checking)
-      move = verify_move(turn, input)
+      return nil if input == 'quit'
+      next if show_moves(input)
+      move = verify_move(input)
       return move if move
 
       puts 'Invalid move!'
@@ -52,17 +78,17 @@ class Chess
     [row, col]
   end
 
-  def show_moves(input, prev_move, checking)
+  def show_moves(input)
     return unless input.match?(/^[a-h][1-8]$/)
     pos = translate_coords(input[0], input[1])
     piece = @board[pos[0]][pos[1]]
     return unless piece
     moves = piece.get_moves(@board, pos)
-    display_board(moves=moves, prev_move, checking)
+    display_board(moves)
     moves
   end
 
-  def verify_move(turn, input)
+  def verify_move(input)
     return unless input.match?(/^[a-h][1-8] [a-h][1-8]$/)
 
     # Convert from file_rank to [row, column]
@@ -74,11 +100,11 @@ class Chess
     
     # Check if the piece is valid and the right color
     piece = @board[from[0]][from[1]]
-    return unless piece and piece.color == turn
+    return unless piece and piece.color == @turn
 
     # Check the target is empty or an opponent piece
     target = @board[to[0]][to[1]]
-    return if target and target.color == turn
+    return if target and target.color == @turn
 
     return unless piece.valid_move?(@board, from, to)
 
@@ -113,35 +139,36 @@ class Chess
     @board[7][4] = King.new :white
   end
 
-  def display_board(moves = [], prev_move = [], checking = [])
+  def display_board(moves=[])
+    @checking = get_checking
     files = '  a b c d e f g h'
     display = files
     @board.each_with_index do |row, i|
       rank = 8 - i
       pieces = (row.map { |piece| piece&.icon || '.' }).join(' ')
-      pieces = highlight_moves(moves, prev_move, checking, " #{pieces} ", i)
+      pieces = highlight_moves(moves, " #{pieces} ", i)
       display += "\n#{rank}#{pieces}#{rank}"
     end
     display += "\n#{files}"
     puts display
   end
 
-  def highlight_moves(moves, prev_move, checking, pieces, i)
+  def highlight_moves(moves, pieces, i)
     8.times do |j|
       pos = [i, j]
       left = [pos[0], pos[1] - 1]
       right = [pos[0], pos[1] + 1]
-      l_inc = moves.include?(left) or checking.include?(left) or prev_move.include?(left)
-      r_inc = moves.include?(right) or checking.include?(right) or prev_move.include?(right)
+      l_inc = moves.include?(left) or @checking.include?(left) or @prev_move.include?(left)
+      r_inc = moves.include?(right) or @checking.include?(right) or @prev_move.include?(right)
       l_sym = nil
       r_sym = nil
       if moves.include?(pos)
         l_sym = l_inc ? '|' : '['
         r_sym = r_inc ? '|' : ']'
-      elsif checking.include?(pos)
+      elsif @checking.include?(pos)
         l_sym = l_inc ? '|' : '{'
         r_sym = r_inc ? '|' : '}'
-      elsif prev_move.include?(pos)
+      elsif @prev_move.include?(pos)
         l_sym = l_inc ? '|' : '('
         r_sym = r_inc ? '|' : ')'
       end
@@ -153,10 +180,10 @@ class Chess
     pieces
   end
 
-  def reset_en_passant(turn)
+  def reset_en_passant
     @board.each do |row|
       row.each do |piece|
-        if piece.is_a?(Pawn) and piece.color == turn
+        if piece.is_a?(Pawn) and piece.color == @turn
           piece.en_passant = false
         end
       end
