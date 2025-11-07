@@ -50,5 +50,29 @@ describe Chess do
       new_game.play_turn
       new_game.display_board
     end
+
+    it 'displays En Passant pawn' do
+       expected = \
+        "  a b c d e f g h\n" + \
+        "8 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 8\n" + \
+        "7 . . ♟ ♟ ♟ ♟ ♟ ♟ 7\n" + \
+        "6 ♟(♙). . . . . . 6\n" + \
+        "5(.). . . . . . . 5\n" + \
+        "4 . . . . . . . . 4\n" + \
+        "3 . . . . . . . . 3\n" + \
+        "2 . ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2\n" + \
+        "1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1\n" + \
+        "  a b c d e f g h"
+      moves = ['a2 a4', 'a7 a6', 'a4 a5', 'b7 b5', 'a5 b6']
+
+      allow(new_game).to receive(:gets).and_return(*moves, quit)
+      expect(new_game).to receive(:puts).with(expected)
+
+      new_game.setup_board
+      moves.length.times do
+        new_game.play_turn
+      end
+      new_game.display_board
+    end
   end
 end
