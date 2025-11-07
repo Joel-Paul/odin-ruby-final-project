@@ -1,7 +1,6 @@
 
 # Todo
 
-- Prevent illegal moves
+- Hide illegal moves
 - Save and load board
-- Write tests
 - Implement random AI
