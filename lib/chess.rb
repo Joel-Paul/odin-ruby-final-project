@@ -84,8 +84,23 @@ class Chess
     piece = @board[pos[0]][pos[1]]
     return unless piece
     moves = piece.get_moves(@board, pos)
+    moves = filter_moves(moves)
     display_board(moves)
     moves
+  end
+  
+  def filter_moves(moves)
+    legal_moves = []
+    for move in moves
+      copy = Marshal.load(Marshal.dump(@board))
+      from, to = move
+      piece = copy[from[0]][from[1]]
+      piece.move(copy, from, to)
+      unless get_checked_player(copy) == @turn
+        legal_moves.append(move)
+      end
+    end
+    legal_moves
   end
 
   def verify_move(input)
@@ -190,14 +205,14 @@ class Chess
     end
   end
 
-  def get_checked_player
-    @board.each_with_index do |row, i|
+  def get_checked_player(board=@board)
+    board.each_with_index do |row, i|
       row.each_with_index do |piece, j|
         position = [i, j]
         if piece
-          king_pos = piece.get_checking(@board, position)
+          king_pos = piece.get_checking(board, position)
           next if king_pos.nil?
-          king = @board[king_pos[0]][king_pos[1]]
+          king = board[king_pos[0]][king_pos[1]]
           return king.color
         end
       end

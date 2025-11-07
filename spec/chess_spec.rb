@@ -74,5 +74,31 @@ describe Chess do
       end
       new_game.display_board
     end
+
+    it 'display legal moves only' do
+       expected = \
+        "  a b c d e f g h\n" + \
+        "8 ♜ ♞ ♝(.)♚ ♝ ♞ ♜ 8\n" + \
+        "7 ♟ ♟ . ♟ ♟ ♟ ♟ ♟ 7\n" + \
+        "6 . . . . . . . . 6\n" + \
+        "5{♛}. ♙ . . . . . 5\n" + \
+        "4 . . . . . . . . 4\n" + \
+        "3 . . . . . . . . 3\n" + \
+        "2 ♙ ♙ ♙[.]♙ ♙ ♙ ♙ 2\n" + \
+        "1 ♖ ♘ ♗ ♕{♔}♗ ♘ ♖ 1\n" + \
+        "  a b c d e f g h"
+      moves = ['d2 d4', 'c7 c5', 'd4 c5', 'd8 a5', 'd1']
+
+      allow(new_game).to receive(:gets).and_return(*moves, quit)
+      expect(new_game).to receive(:puts).with(expected)
+
+      new_game.setup_board
+      moves.length.times do
+        new_game.play_turn
+      end
+      new_game.display_board
+    end
+
+
   end
 end
