@@ -17,6 +17,7 @@ describe Chess do
         "1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1\n" + \
         "  a b c d e f g h"
       expect(new_game).to receive(:puts).with(expected)
+      new_game.setup_board
       new_game.display_board
     end
   end
