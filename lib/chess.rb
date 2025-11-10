@@ -19,7 +19,10 @@ class Chess
 
     prev_copy = @prev_move
     @prev_move = player_input
-    return :exit if @prev_move.nil?  # exit game
+    if @prev_move.nil?
+      @prev_move = prev_copy
+      return :exit
+    end
     from, to = @prev_move
 
     piece = @board[from[0]][from[1]]
@@ -84,21 +87,18 @@ class Chess
     piece = @board[pos[0]][pos[1]]
     return unless piece
     moves = piece.get_moves(@board, pos)
-    moves = filter_moves(moves)
+    moves = filter_moves(pos, moves)
     display_board(moves)
     moves
   end
   
-  def filter_moves(moves)
+  def filter_moves(pos, moves)
     legal_moves = []
     for move in moves
       copy = Marshal.load(Marshal.dump(@board))
-      from, to = move
-      piece = copy[from[0]][from[1]]
-      piece.move(copy, from, to)
-      unless get_checked_player(copy) == @turn
-        legal_moves.append(move)
-      end
+      piece = copy[pos[0]][pos[1]]
+      piece.move(copy, pos, move)
+      legal_moves.append(move) unless in_check?(copy, piece.color)
     end
     legal_moves
   end
@@ -218,6 +218,19 @@ class Chess
       end
     end
     :none
+  end
+
+  def in_check?(board=@board, player)
+    board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        position = [i, j]
+        unless piece.nil? or piece.color == player
+          king_pos = piece.get_checking(board, position)
+          return true unless king_pos.nil?
+        end
+      end
+    end
+    false
   end
 
   def get_checking

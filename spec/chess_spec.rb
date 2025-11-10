@@ -96,7 +96,6 @@ describe Chess do
       moves.length.times do
         new_game.play_turn
       end
-      new_game.display_board
     end
 
 
