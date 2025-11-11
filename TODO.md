@@ -1,5 +1,6 @@
 
 # Todo
 
-- Save and load board
 - Implement random AI
+- Implement Castling
+- Implement Pawn Promotion
