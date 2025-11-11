@@ -1,6 +1,8 @@
 require_relative 'chess/pieces'
 
 class Chess
+  SAVE_FILE = 'game.dat'
+
   def initialize
     @board = Array.new(8) { Array.new(8) }
     @turn = :white
@@ -12,6 +14,18 @@ class Chess
   def new_game
     setup_board
     play
+  end
+  
+  def save_game
+    File.open(SAVE_FILE, 'w+') do |f|
+      Marshal.dump(@board, f)
+    end
+  end
+
+  def load_game
+    File.open(SAVE_FILE) do |f|
+      @board = Marshal.load(f)
+    end
   end
 
   def play_turn

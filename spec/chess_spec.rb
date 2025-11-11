@@ -94,4 +94,54 @@ describe Chess do
     end
 
   end
+
+  describe '#load_game' do
+    it 'loads the En Passant state correctly' do
+      moves_before = ['a2 a4', 'a7 a6', 'a4 a5', 'b7 b5']
+      before = \
+        "  a b c d e f g h\n" + \
+        "8 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 8\n" + \
+        "7 .(.)♟ ♟ ♟ ♟ ♟ ♟ 7\n" + \
+        "6 ♟ . . . . . . . 6\n" + \
+        "5 ♙(♟). . . . . . 5\n" + \
+        "4 . . . . . . . . 4\n" + \
+        "3 . . . . . . . . 3\n" + \
+        "2 . ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2\n" + \
+        "1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1\n" + \
+        "  a b c d e f g h"
+      moves_after = ['a5 b6']
+      after = \
+        "  a b c d e f g h\n" + \
+        "8 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 8\n" + \
+        "7 . . ♟ ♟ ♟ ♟ ♟ ♟ 7\n" + \
+        "6 ♟(♙). . . . . . 6\n" + \
+        "5(.). . . . . . . 5\n" + \
+        "4 . . . . . . . . 4\n" + \
+        "3 . . . . . . . . 3\n" + \
+        "2 . ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2\n" + \
+        "1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1\n" + \
+        "  a b c d e f g h"
+      
+      allow(new_game).to receive(:gets).and_return(*moves_before)
+      expect(new_game).to receive(:puts).with(before)
+
+      new_game.setup_board
+      moves_before.length.times do
+        new_game.play_turn
+      end
+      new_game.save_game
+      new_game.load_game
+      new_game.display_board
+      
+      allow(new_game).to receive(:gets).and_return(*moves_after)
+      expect(new_game).to receive(:puts).with(after)
+      
+      moves_after.length.times do
+        new_game.play_turn
+      end
+      new_game.display_board
+    end
+
+  end
+
 end
