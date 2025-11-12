@@ -124,7 +124,7 @@ class Pawn < Piece
     # Forward movement
     front = [position[0] + @forward, position[1]]
     unless get_piece(board, front)
-      moves.append(front)
+      moves.append(front) if inside_bounds?(front)
       target = [front[0] + @forward, front[1]]
       moves.append(target) unless @moved or get_piece(board, target)
     end

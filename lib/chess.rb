@@ -28,8 +28,10 @@ class Chess
     end
   end
 
-  def play_turn(ai=false)
+  def play_turn(ai=true)
     reset_en_passant
+    status = get_status
+    return status unless status == :in_progress
 
     prev_copy = @prev_move
     @prev_move = ai ? get_rand_move : player_input
@@ -51,7 +53,7 @@ class Chess
       @prev_move = prev_copy
       return :undo
     end
-    @turn = @turn == :white ? :black : :white
+    @turn = get_opponent
     target
   end
 
@@ -72,7 +74,20 @@ class Chess
         end
       end
 
-      puts "#{turn.capitalize} captures #{target.class}!" if target
+      puts "#{turn.capitalize} captures #{target.class}!" if target and target.class != Symbol
+
+      status = get_status
+      if status == :checkmate
+        opponent = get_opponent.capitalize
+        puts "#{@turn.capitalize} in checkmate, #{opponent} wins!"
+      elsif status == :stalemate
+        puts "Stalemate reached"
+      end
+      unless status == :in_progress
+        display_board
+        return
+      end
+
       puts "#{@checked_player.capitalize} in check!" unless @checked_player == :none
     end
   end
@@ -95,6 +110,12 @@ class Chess
     [row, col]
   end
 
+  def translate_pos(pos)
+    rank = 8 - pos[0]
+    file = (pos[1] + 'a'.ord).chr
+    "#{file}#{rank}"
+  end
+
   def show_moves(input)
     return unless input.match?(/^[a-h][1-8]$/)
     pos = translate_coords(input[0], input[1])
@@ -107,7 +128,7 @@ class Chess
 
   def get_legal_moves(pos)
     piece = @board[pos[0]][pos[1]]
-    filter_moves(pos, piece.get_moves(@board, pos))|[]
+    filter_moves(pos, piece.get_moves(@board, pos))
   end
 
   def get_all_moves(player)
@@ -125,7 +146,9 @@ class Chess
   end
 
   def get_rand_move(player=@turn)
-    get_all_moves(player).sample
+    move = get_all_moves(player).sample
+    puts "#{translate_pos(move[0])} #{translate_pos(move[1])}"
+    move
   end
   
   def filter_moves(pos, moves)
@@ -136,7 +159,31 @@ class Chess
       piece.move(copy, pos, move)
       legal_moves.append(move) unless in_check?(copy, piece.color)
     end
-    legal_moves
+    legal_moves|[]
+  end
+
+  def get_status(player=@turn)
+    if get_all_moves(player).none?
+      return in_check?(@board, player) ? :checkmate : :stalemate
+    end
+    if get_pieces(player).one? and get_pieces(get_opponent(player)).one?
+      return :stalemate
+    end
+    :in_progress
+  end
+
+  def get_pieces(player=@turn)
+    pieces = []
+    @board.each do |row|
+      row.each do |piece|
+        pieces.append(piece) if piece and piece.color == player
+      end
+    end
+    pieces
+  end
+
+  def get_opponent(player=@turn)
+    player == :white ? :black : :white
   end
 
   def verify_move(input)
