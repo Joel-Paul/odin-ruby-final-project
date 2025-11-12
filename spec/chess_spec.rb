@@ -96,16 +96,16 @@ describe Chess do
     it 'displays castling' do
       expected = \
         "  a b c d e f g h\n" + \
-        "8 ♜ ♞ . . ♚ ♝ ♞ ♜ 8\n" + \
+        "8 . .(♚)♜(.)♝ ♞ ♜ 8\n" + \
         "7 ♟ ♟ ♟ ♛ ♟ ♟ ♟ ♟ 7\n" + \
-        "6 . . . ♟ ♝ . . . 6\n" + \
+        "6 . . ♞ ♟ ♝ . . . 6\n" + \
         "5 . . . . . . . . 5\n" + \
         "4 . . . . . . . . 4\n" + \
         "3 . . . . . ♘ ♙ . 3\n" + \
         "2 ♙ ♙ ♙ ♙ ♙ ♙ ♗ ♙ 2\n" + \
-        "1 ♖ ♘ ♗ ♕(.)♖(♔). 1\n" + \
+        "1 ♖ ♘ ♗ . ♕ ♖ ♔ . 1\n" + \
         "  a b c d e f g h"
-      moves = ['g1 f3', 'd7 d6', 'g2 g3', 'c8 e6', 'f1 g2', 'd8 d7', 'e1 g1']
+      moves = ['g1 f3', 'd7 d6', 'g2 g3', 'c8 e6', 'f1 g2', 'd8 d7', 'e1 g1', 'b8 c6', 'd1 e1', 'e8 c8']
 
       allow(new_game).to receive(:gets).and_return(*moves, 'quit')
       expect(new_game).to receive(:puts).with(expected)
