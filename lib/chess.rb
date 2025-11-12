@@ -28,7 +28,7 @@ class Chess
     end
   end
 
-  def play_turn(ai=true)
+  def play_turn(ai=false)
     reset_en_passant
     status = get_status
     return status unless status == :in_progress
