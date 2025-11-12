@@ -28,11 +28,11 @@ class Chess
     end
   end
 
-  def play_turn
+  def play_turn(ai=false)
     reset_en_passant
 
     prev_copy = @prev_move
-    @prev_move = player_input
+    @prev_move = ai ? get_rand_move : player_input
     if @prev_move.nil?
       @prev_move = prev_copy
       return :exit
@@ -100,10 +100,32 @@ class Chess
     pos = translate_coords(input[0], input[1])
     piece = @board[pos[0]][pos[1]]
     return unless piece
-    moves = piece.get_moves(@board, pos)
-    moves = filter_moves(pos, moves)
+    moves = get_legal_moves(pos)
     display_board(moves)
     moves
+  end
+
+  def get_legal_moves(pos)
+    piece = @board[pos[0]][pos[1]]
+    filter_moves(pos, piece.get_moves(@board, pos))|[]
+  end
+
+  def get_all_moves(player)
+    moves = []
+    @board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        next unless piece and piece.color == player
+        from = [i, j]
+        get_legal_moves(from).each do |to|
+          moves.append([from, to])
+        end
+      end
+    end
+    moves|[]
+  end
+
+  def get_rand_move(player=@turn)
+    get_all_moves(player).sample
   end
   
   def filter_moves(pos, moves)
