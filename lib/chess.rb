@@ -48,7 +48,7 @@ class Chess
     if @checked_player == @turn
       # Undo move if it results in current player landing in check
       @board[from[0]][from[1]] = piece
-      @board[to[0]][to[0]] = nil
+      @board[to[0]][to[1]] = nil
       @board[pos[0]][pos[1]] = target
       @prev_move = prev_copy
       return :undo
@@ -128,7 +128,9 @@ class Chess
 
   def get_legal_moves(pos)
     piece = @board[pos[0]][pos[1]]
-    filter_moves(pos, piece.get_moves(@board, pos))
+    moves = piece.get_moves(@board, pos)
+    moves += piece.get_castle_moves(@board, pos) if piece.is_a?(King)
+    filter_moves(pos, moves)
   end
 
   def get_all_moves(player)

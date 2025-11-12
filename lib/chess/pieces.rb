@@ -1,6 +1,6 @@
 
 class Piece
-  attr_reader :color
+  attr_reader :color, :moved
 
   def initialize(color)
     @color = color
@@ -102,6 +102,18 @@ class Piece
 
   def inside_bounds?(position)
     position[0].between?(0, 7) and position[1].between?(0, 7)
+  end
+
+  def threatened?(board, pos, color=@color)
+    board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        next if piece.nil? or piece.color == color
+        from = [i, j]
+        moves = piece.get_moves(board, from)
+        return true if moves.include?(pos)
+      end
+    end
+    false
   end
 end
 
@@ -246,5 +258,47 @@ class King < Piece
 
   def get_moves(board, position)
     orthogonal_moves(board, position, range=1) + diagonal_moves(board, position, range=1)
+  end
+
+  def get_castle_moves(board, position)
+    moves = []
+    moves.append(get_castle_move(board, position, 1))
+    moves.append(get_castle_move(board, position, -1))
+    moves.compact
+  end
+
+  def get_castle_move(board, position, direction)
+    return nil if @moved
+
+    rook_offset = direction == 1 ? 3 : -4
+    rook = board[position[0]][position[1] + rook_offset]
+    return nil if rook.nil? or not rook.is_a?(Rook) or rook.moved
+
+    gap_offset_min = direction == 1 ? 1 : -3
+    gap_offset_max = direction == 1 ? 2 : -1
+    (gap_offset_min..gap_offset_max).each do |offset|
+      pos = [position[0], position[1] + offset]
+      piece = board[pos[0]][pos[1]]
+      return nil if piece or threatened?(board, pos)
+    end
+
+    [position[0], position[1] + direction * 2]
+  end
+
+  def valid_move?(board, from, to)
+    return true if get_castle_moves(board, from).include?(to)
+    super
+  end
+
+  def move(board, from, to)
+    diff = to[1] - from[1]
+    if diff.abs > 1
+      rook_old_col = diff > 0 ? 3 : -4
+      rook_new_col = diff > 0 ? 1 : -1
+      rook = board[from[0]][from[1] + rook_old_col]
+      board[from[0]][from[1] + rook_new_col] = rook
+      board[from[0]][from[1] + rook_old_col] = nil
+    end
+    super
   end
 end
