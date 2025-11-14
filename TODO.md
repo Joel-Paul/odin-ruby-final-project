@@ -1,5 +1,4 @@
 
 # Todo
 
-- Implement Castling
-- Implement Pawn Promotion
+- Allow to specify which player is AI

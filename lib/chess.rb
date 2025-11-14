@@ -53,6 +53,7 @@ class Chess
       @prev_move = prev_copy
       return :undo
     end
+    check_promotion(pos, ai)
     @turn = get_opponent
     target
   end
@@ -288,6 +289,26 @@ class Chess
         end
       end
     end
+  end
+
+  def check_promotion(pos, ai=false)
+    piece = @board[pos[0]][pos[1]]
+    if piece.is_a?(Pawn) and (pos[0] == 0 or pos[0] == 7)
+      choice = select_promotion(ai)
+      piece = choice == 'queen' ? Queen.new(piece.color) : Knight.new(piece.color)
+      @board[pos[0]][pos[1]] = piece
+    end
+  end
+
+  def select_promotion(ai=false)
+    puts 'Select piece to promote pawn to (queen/knight):'
+    choice = nil
+    loop do
+      choice = ai ? ['queen', 'knight'].sample : gets.chomp.downcase
+      puts choice if ai
+      break if choice == 'queen' or choice == 'knight'
+    end
+    choice
   end
 
   def get_checked_player(board=@board)
