@@ -9,22 +9,60 @@ class Chess
     @prev_move = []
     @checking = []
     @checked_player = :none
+    @white_ai = false
+    @black_ai = false
   end
 
   def new_game
+    puts 'Welcome to Chess!'
+    puts 'Select an option to continue:'
+    puts '  1. Player vs Player'
+    puts '  2. Player (White) vs AI'
+    puts '  3. AI vs Player (Black)'
+    puts '  4. AI vs AI'
+    puts '  5. Load saved game'
+    puts '  6. Quit'
+
+    input = nil
+    loop do
+      input = gets.chomp.downcase
+      break if input.match?(/^[1-6]$/)
+      puts 'Invalid option, try again:'
+    end
+
     setup_board
+
+    case input.to_i
+    when 1
+    when 2
+      @black_ai = true
+    when 3
+      @white_ai = true
+    when 4
+      @white_ai = true
+      @black_ai = true
+    when 5
+      if load_game.nil?
+        puts 'No saved games found'
+        return
+      end
+    else
+      return
+    end
+
     play
   end
   
   def save_game
     File.open(SAVE_FILE, 'w+') do |f|
-      Marshal.dump(@board, f)
+      Marshal.dump([@board, @turn, @prev_move, @checking, @checked_player, @white_ai, @black_ai], f)
     end
   end
 
   def load_game
+    return unless File.exist?(SAVE_FILE)
     File.open(SAVE_FILE) do |f|
-      @board = Marshal.load(f)
+      @board, @turn, @prev_move, @checking, @checked_player, @white_ai, @black_ai = Marshal.load(f)
     end
   end
 
@@ -61,12 +99,13 @@ class Chess
   def play
     loop do
       turn = @turn
+      ai = @turn == :white ? @white_ai : @black_ai
       puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
       display_board
 
       target = nil
       loop do
-        target = play_turn
+        target = play_turn(ai)
         return if target == :exit
         if target == :undo
           puts "This move will put you in check, try again..."
