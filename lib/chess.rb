@@ -100,7 +100,7 @@ class Chess
     loop do
       turn = @turn
       ai = @turn == :white ? @white_ai : @black_ai
-      puts "#{turn.capitalize}'s turn. Enter your move (e.g., e2 e4) or a square to show moves (e.g., e2):"
+      puts "#{turn.capitalize}'s turn. Enter your move (e.g., `e2 e4`) or a square to show moves (e.g., `e2`). Type `save` to save and exit, or `quit` to exit without saving."
       display_board
 
       target = nil
@@ -136,6 +136,10 @@ class Chess
     loop do
       input = gets.chomp.downcase
       return nil if input == 'quit'
+      if input == 'save'
+        save_game
+        return nil
+      end
       next if show_moves(input)
       move = verify_move(input)
       return move if move
